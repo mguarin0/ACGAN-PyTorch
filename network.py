@@ -45,7 +45,7 @@ class _netG(nn.Module):
             input = input.view(-1, self.nz)
             fc1 = nn.parallel.data_parallel(self.fc1, input, range(self.ngpu))
             fc1 = fc1.view(-1, 768, 1, 1)
-            tconv2 = nn.parallel.data_parallel(self.tconv2, fc1, range(self.ngpu))
+            tconv2 = nn.parallel.data_parallel(self.tconv2, fc1, range(self.ngpu)) # pro move
             tconv3 = nn.parallel.data_parallel(self.tconv3, tconv2, range(self.ngpu))
             tconv4 = nn.parallel.data_parallel(self.tconv4, tconv3, range(self.ngpu))
             tconv5 = nn.parallel.data_parallel(self.tconv5, tconv4, range(self.ngpu))
@@ -115,7 +115,7 @@ class _netD(nn.Module):
         # aux-classifier fc
         self.fc_aux = nn.Linear(13*13*512, num_classes)
         # softmax and sigmoid
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
@@ -249,7 +249,7 @@ class _netD_CIFAR10(nn.Module):
         # aux-classifier fc
         self.fc_aux = nn.Linear(4*4*512, num_classes)
         # softmax and sigmoid
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):

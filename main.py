@@ -152,10 +152,11 @@ eval_noise = Variable(eval_noise)
 dis_label = Variable(dis_label)
 aux_label = Variable(aux_label)
 # noise for evaluation
-eval_noise_ = np.random.normal(0, 1, (opt.batchSize, nz))
-eval_label = np.random.randint(0, num_classes, opt.batchSize)
-eval_onehot = np.zeros((opt.batchSize, num_classes))
-eval_onehot[np.arange(opt.batchSize), eval_label] = 1
+eval_noise_ = np.random.normal(0, 1, (opt.batchSize, nz)) # shape (batchSize, nz)
+eval_label = np.random.randint(0, num_classes, opt.batchSize) # produces a single random class label 
+eval_onehot = np.zeros((opt.batchSize, num_classes)) # shape (batchSize, num_classes)
+eval_onehot[np.arange(opt.batchSize), eval_label] = 1 # ohe eval_onehot for eval_label 
+# add ohe to eval_noise_ slicing up to num_classes the reason for this is unknown
 eval_noise_[np.arange(opt.batchSize), :num_classes] = eval_onehot[np.arange(opt.batchSize)]
 eval_noise_ = (torch.from_numpy(eval_noise_))
 eval_noise.data.copy_(eval_noise_.view(opt.batchSize, nz, 1, 1))
@@ -187,7 +188,7 @@ for epoch in range(opt.niter):
         aux_errD_real = aux_criterion(aux_output, aux_label)
         errD_real = dis_errD_real + aux_errD_real
         errD_real.backward()
-        D_x = dis_output.data.mean()
+        D_x = dis_output.data.mean() # take mean of dis_output
 
         # compute the current classification accuracy
         accuracy = compute_acc(aux_output, aux_label)
@@ -232,8 +233,8 @@ for epoch in range(opt.niter):
         all_loss_G = avg_loss_G * curr_iter
         all_loss_D = avg_loss_D * curr_iter
         all_loss_A = avg_loss_A * curr_iter
-        all_loss_G += errG.data[0]
-        all_loss_D += errD.data[0]
+        all_loss_G += errG.item()
+        all_loss_D += errD.item()
         all_loss_A += accuracy
         avg_loss_G = all_loss_G / (curr_iter + 1)
         avg_loss_D = all_loss_D / (curr_iter + 1)
@@ -241,7 +242,7 @@ for epoch in range(opt.niter):
 
         print('[%d/%d][%d/%d] Loss_D: %.4f (%.4f) Loss_G: %.4f (%.4f) D(x): %.4f D(G(z)): %.4f / %.4f Acc: %.4f (%.4f)'
               % (epoch, opt.niter, i, len(dataloader),
-                 errD.data[0], avg_loss_D, errG.data[0], avg_loss_G, D_x, D_G_z1, D_G_z2, accuracy, avg_loss_A))
+                 errD.item(), avg_loss_D, errG.item(), avg_loss_G, D_x, D_G_z1, D_G_z2, accuracy, avg_loss_A))
         if i % 100 == 0:
             vutils.save_image(
                 real_cpu, '%s/real_samples.png' % opt.outf)

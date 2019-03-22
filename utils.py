@@ -1,8 +1,10 @@
 # custom weights initialization called on netG and netD
 def weights_init(m):
     classname = m.__class__.__name__
+    # if conv not last layer
     if classname.find('Conv') != -1:
         m.weight.data.normal_(0.0, 0.02)
+    # elif batch norm not last layer
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
